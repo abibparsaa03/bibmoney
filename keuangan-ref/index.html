@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>bibmoney — Kelola Keuangan Mingguan Cerdas</title>
+  <meta name="description" content="bibmoney - Aplikasi pencatat dan pengatur keuangan jatah mingguan cerdas dengan input suara bahasa santai & gaul">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="6" width="20" height="12" rx="3"></rect>
+            <circle cx="12" cy="12" r="2.5"></circle>
+            <path d="M6 12h.01M18 12h.01"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">bibmoney</h1>
+          <p class="brand-subtitle">Smart Weekly Budget</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btnOpenSetting" class="icon-btn" title="Pengaturan Jatah" aria-label="Pengaturan">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
+        <button id="btnResetMinggu" class="icon-btn text-danger" title="Mulai Minggu Baru" aria-label="Mulai Minggu Baru">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Hero Card: Saldo & Jatah Jajan -->
+    <div class="hero-card">
+      <div class="hero-top">
+        <span class="hero-label">Sisa Uang Jajan Minggu Ini</span>
+        <span class="day-badge" id="hariBadge">Hari 1 / 7</span>
+      </div>
+      <div class="hero-balance" id="sisa">Rp0</div>
+      <div class="hero-sub" id="perhari">Boleh jajan sekitar Rp0 / hari</div>
+
+      <!-- Progress Bar Jatah Jajan -->
+      <div class="progress-wrap">
+        <div class="progress-info">
+          <span>Pemakaian jajan</span>
+          <span id="progressPersen">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Grid -->
+      <div class="hero-stats">
+        <div class="stat-box">
+          <span class="stat-caption">Total Masuk</span>
+          <span class="stat-value text-success" id="statMasuk">Rp0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-caption">Jatah Jajan</span>
+          <span class="stat-value" id="statJatah">Rp0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-caption">Terpakai</span>
+          <span class="stat-value text-warning" id="statKeluar">Rp0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Keuangan Alert Banner -->
+    <div id="statusBanner" class="status-banner pas">
+      <div class="status-icon" id="statusIcon">⚡</div>
+      <div class="status-text" id="statusText">Pas, pengeluaranmu sesuai jatah.</div>
+    </div>
+
+    <!-- Voice Input Card (Pintar & Santai) -->
+    <div class="card voice-card">
+      <div class="card-head">
+        <span class="card-title">🎙️ Catat Suara (Bahasa Santai & Gaul)</span>
+        <span class="badge-ai">Pintar</span>
+      </div>
+
+      <button id="mic" class="mic-button">
+        <div class="mic-icon-circle">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+          </svg>
+        </div>
+        <span id="micText">Tekan lalu bicara santai</span>
+        <div class="sound-wave" id="soundWave">
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </button>
+
+      <!-- Real-time / Hasil Suara -->
+      <div class="voice-feedback" id="hasilSuara">
+        <span class="hint-label">Bebas ngomong apa aja:</span> "Makan soto 25 rebu", "Ngopi ceban", "Bensin 20k", "Dapet transferan tiga ratus ribu"
+      </div>
+
+      <!-- Quick Voice Tester Chips -->
+      <div class="sample-voice-section">
+        <span class="sample-voice-title">Coba klik contoh ucapan santai:</span>
+        <div class="sample-voice-chips">
+          <button type="button" class="sample-chip" onclick="tesUcapan('Gue tadi makan soto dua puluh lima ribu')">🍜 Soto 25 rebu</button>
+          <button type="button" class="sample-chip" onclick="tesUcapan('Ngopi kenangan ceban')">☕ Ngopi ceban</button>
+          <button type="button" class="sample-chip" onclick="tesUcapan('Beli bensin gocap')">🛵 Bensin gocap</button>
+          <button type="button" class="sample-chip" onclick="tesUcapan('Parkir kampus goceng')">🅿️ Parkir goceng</button>
+          <button type="button" class="sample-chip" onclick="tesUcapan('Dapet transferan ortu tiga ratus ribu')">💵 Transfer 300rb</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manual Input Card -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">✏️ Catat Manual</span>
+      </div>
+
+      <!-- Segmented Type Selector -->
+      <div class="type-selector">
+        <button type="button" class="type-btn active" id="tabKeluar" onclick="pilihTipe('keluar')">
+          <span class="type-indicator out"></span>
+          Pengeluaran
+        </button>
+        <button type="button" class="type-btn" id="tabMasuk" onclick="pilihTipe('masuk')">
+          <span class="type-indicator in"></span>
+          Uang Masuk
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label for="ket">Keterangan Transaksi</label>
+        <div class="input-with-icon">
+          <input id="ket" placeholder="Misal: Nasi Padang, Kopi, Kiriman Ortu" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="jml">Jumlah (Rupiah)</label>
+        <div class="input-currency-wrapper">
+          <span class="currency-prefix">Rp</span>
+          <input id="jml" type="number" placeholder="0" inputmode="numeric">
+        </div>
+      </div>
+
+      <!-- Quick Amount Presets -->
+      <div class="quick-chips">
+        <button type="button" class="chip" onclick="tambahCepat(5000)">+5rb</button>
+        <button type="button" class="chip" onclick="tambahCepat(10000)">+10rb</button>
+        <button type="button" class="chip" onclick="tambahCepat(20000)">+20rb</button>
+        <button type="button" class="chip" onclick="tambahCepat(50000)">+50rb</button>
+        <button type="button" class="chip" onclick="tambahCepat(100000)">+100rb</button>
+      </div>
+
+      <button id="btnSimpanTrx" class="btn-primary" onclick="simpanManualBaru()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v14M5 12h14"></path>
+        </svg>
+        Simpan Pengeluaran
+      </button>
+    </div>
+
+    <!-- Alokasi & Ringkasan Detail Card -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">📊 Rincian Alokasi Minggu Ini</span>
+      </div>
+      <div class="breakdown-list" id="laporan">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Riwayat Transaksi -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">🕒 Riwayat Minggu Ini</span>
+        <span class="history-count" id="trxCount">0 catatan</span>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-bar">
+        <button class="filter-chip active" onclick="setFilter('semua', this)">Semua</button>
+        <button class="filter-chip" onclick="setFilter('keluar', this)">Pengeluaran</button>
+        <button class="filter-chip" onclick="setFilter('masuk', this)">Uang Masuk</button>
+      </div>
+
+      <div id="riwayat" class="history-list">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>bibmoney &bull; Finansial teratur, pikiran tenang</p>
+    </footer>
+  </div>
+
+  <!-- Modal Pengaturan Jatah Mingguan -->
+  <div class="modal-overlay" id="modalSetting">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon">⚙️</div>
+          <h3>Atur Jatah Mingguan</h3>
+        </div>
+        <button class="modal-close" onclick="tutupModalSetting()">&times;</button>
+      </div>
+      <p class="modal-desc">
+        Tentukan target tabungan dan ongkos wajib setiap kali menerima uang masuk mingguan. Sisa bersihnya otomatis jadi jatah jajanmu!
+      </p>
+
+      <div class="form-group">
+        <label for="setTab">Target Tabungan (Rp)</label>
+        <div class="input-currency-wrapper">
+          <span class="currency-prefix">Rp</span>
+          <input id="setTab" type="number" placeholder="50000" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="setOng">Jatah Ongkos Kampus / Transport (Rp)</label>
+        <div class="input-currency-wrapper">
+          <span class="currency-prefix">Rp</span>
+          <input id="setOng" type="number" placeholder="50000" inputmode="numeric">
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="tutupModalSetting()">Batal</button>
+        <button class="btn-primary" onclick="simpanSettingModal()">Simpan Pengaturan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
