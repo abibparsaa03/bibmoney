@@ -1,6 +1,8 @@
 // ==========================================
 // bibmoney - Smart Weekly Budget & Expense Tracker
 // Powered by Advanced Indonesian NLP Voice Parser
+// iOS Optimized with Auto-Silence & "Simpan" Keyword
+// Built-in Web Audio Sound Effects (Consistent & Zero-Latency)
 // ==========================================
 
 // Inisialisasi Data (Migrasi otomatis jika ada data lama)
@@ -37,6 +39,114 @@ function showToast(message) {
   toast._timeout = setTimeout(() => {
     toast.classList.remove('show');
   }, 2600);
+}
+
+// =================================================================
+// 🎵 WEB AUDIO SYNTHESIZER (Efek Suara Konsisten di iOS & Android)
+// Bekerja 100% offline, tanpa unduh file eksternal, latensi nol
+// =================================================================
+let audioCtx = null;
+
+function getAudioContext() {
+  try {
+    if (!audioCtx) {
+      const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtxClass) {
+        audioCtx = new AudioCtxClass();
+      }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  } catch (e) {}
+  return audioCtx;
+}
+
+// 1. Suara Saat Menekan Mic (Start Listening Chime - Rising Two-Tone)
+function playSoundStart() {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    // Nada naik ramah: 500Hz -> 720Hz
+    osc.frequency.setValueAtTime(500, now);
+    osc.frequency.exponentialRampToValueAtTime(720, now + 0.12);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.2, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.15);
+  } catch (e) {}
+}
+
+// 2. Suara Saat Selesai & Berhasil Simpan (Success Chime - C Major Triad Bell)
+function playSoundSuccess() {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    // Nada akor sukses ceria: C5 (523Hz) -> E5 (659Hz) -> G5 (784Hz)
+    const tones = [
+      { freq: 523.25, start: 0, dur: 0.09 },
+      { freq: 659.25, start: 0.08, dur: 0.09 },
+      { freq: 783.99, start: 0.16, dur: 0.25 }
+    ];
+
+    tones.forEach(t => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(t.freq, now + t.start);
+
+      gain.gain.setValueAtTime(0.001, now + t.start);
+      gain.gain.linearRampToValueAtTime(0.22, now + t.start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + t.start + t.dur);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now + t.start);
+      osc.stop(now + t.start + t.dur + 0.02);
+    });
+  } catch (e) {}
+}
+
+// 3. Suara Batal / Tanpa Suara (Cancel Soft Blip)
+function playSoundCancel() {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(380, now);
+    osc.frequency.exponentialRampToValueAtTime(260, now + 0.15);
+
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.15, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.16);
+  } catch (e) {}
 }
 
 // Deteksi Ikon Kategori Berdasarkan Keterangan
@@ -84,7 +194,6 @@ const KATA_ANGKA = {
 };
 
 // Konversi untaian kata angka Indonesia menjadi nilai numerik
-// Contoh: "dua puluh lima ribu lima ratus" -> 25500
 function convertIndoWordsToNumber(str) {
   const tokens = str.trim().toLowerCase().split(/\s+/);
   let total = 0;
@@ -145,7 +254,6 @@ function convertIndoWordsToNumber(str) {
       sub = 0;
     } else if (w === 'setengah') {
       adaAngka = true;
-      // Periksa token berikutnya apakah juta / ribu
       const next = tokens[i + 1];
       if (next === 'juta') {
         total += 500000;
@@ -166,10 +274,10 @@ function convertIndoWordsToNumber(str) {
 // Ekstraksi Nominal Utama (Mendukung Slang, Kata Huruf, & Angka Digit)
 function extractNominalDanMatch(text) {
   let low = text.toLowerCase()
-    .replace(/[.,](?=\d{3})/g, '') // hilangkan titik pemisah ribuan misal 25.000 -> 25000
+    .replace(/[.,](?=\d{3})/g, '') // hilangkan titik pemisah ribuan
     .replace(/,/g, '.');
 
-  // --- TAHAP 1: Deteksi Slang Populer (Bahasa Gaul Jabodetabek/Indonesia) ---
+  // --- TAHAP 1: Deteksi Slang Populer ---
   const slangTable = [
     { regex: /\b(ceban)\b/i, val: 10000 },
     { regex: /\b(goceng)\b/i, val: 5000 },
@@ -194,7 +302,7 @@ function extractNominalDanMatch(text) {
     }
   }
 
-  // --- TAHAP 2: Deteksi Digit Gabungan Satuan (misal: 25k, 25rb, 25 rebu, 1.5 juta) ---
+  // --- TAHAP 2: Deteksi Digit Gabungan Satuan ---
   // Juta
   let mJt = low.match(/(\d+(?:\.\d+)?)\s*(?:juta|jt)\b/);
   if (mJt) {
@@ -219,8 +327,7 @@ function extractNominalDanMatch(text) {
     return { nominal: parseFloat(mNum[1]), matchedText: mNum[0] };
   }
 
-  // --- TAHAP 3: Deteksi Angka Kata Bahasa Indonesia (Spelled-out words) ---
-  // Mencari rangkaian kata angka berurutan
+  // --- TAHAP 3: Deteksi Angka Kata Bahasa Indonesia ---
   const polaKataAngka = /\b((?:(?:nol|kosong|se|satu|dua|tiga|empat|pat|lima|enam|tujuh|tuju|delapan|lapan|sembilan|sepuluh|sepulu|sebelas|belas|puluh|seratus|ratus|seribu|ribu|rebu|sejuta|juta|setengah)\s*){1,8})\b/i;
   const mKata = low.match(polaKataAngka);
   if (mKata && mKata[1].trim()) {
@@ -231,11 +338,9 @@ function extractNominalDanMatch(text) {
   }
 
   // --- TAHAP 4: Singkatan santai (misal: "ngopi 25", "seblak 15", "bensin 20") ---
-  // Angka 5 - 999 di akhir kalimat atau setelah kata kerja/benda sering kali dimaksudkan ribuan
   let mSantai = low.match(/(?:abis|kena|bayar|seharga|beli|buat|dapet)?\s*\b([1-9]\d{0,2})\s*(?:perak|rupiah)?$/);
   if (mSantai) {
     let n = parseFloat(mSantai[1]);
-    // Jika angka antara 5 dan 500 dan tidak didahului kata jumlah seperti "2 porsi", kita asumsikan ribuan
     if (n >= 5 && n <= 500) {
       return { nominal: n * 1000, matchedText: mSantai[1] };
     }
@@ -248,14 +353,15 @@ function extractNominalDanMatch(text) {
 function parseSuara(kalimatAsli) {
   if (!kalimatAsli || typeof kalimatAsli !== 'string') return null;
 
-  const deteksi = extractNominalDanMatch(kalimatAsli);
+  // Bersihkan kata kunci pemicu simpan / selesai di awal
+  let text = kalimatAsli.toLowerCase().replace(/\b(simpan|disimpan|selesai|oke simpan|catat)\b/gi, ' ');
+
+  const deteksi = extractNominalDanMatch(text);
   if (!deteksi || !deteksi.nominal) return null;
 
   const nominal = deteksi.nominal;
-  let text = kalimatAsli.toLowerCase();
 
   // 1. Tentukan Jenis Transaksi (Masuk vs Keluar)
-  // Kata kunci pemasukan yang sangat variatif & santai
   const kataMasuk = /\b(kiriman|dikirimin|dikirim|transfer|transferan|ditransfer|ditransferin|dapet|dapat|nerima|terima|pemasukan|gaji|gajian|cair|dikasih|diberi|nemu|nemuin|bonus|thr|angpao|sangu|uang saku|uang jajan|laku|menang|arisan|cashback|kembalian|tips|freelance)\b/i;
   const jenis = kataMasuk.test(text) ? 'masuk' : 'keluar';
 
@@ -269,6 +375,8 @@ function parseSuara(kalimatAsli) {
 
   // Daftar kata umum/informal yang ingin dibersihkan dari keterangan
   const filterKata = [
+    // Kata aksi simpan
+    /\b(simpan|disimpan|selesai|oke simpan|catat)\b/gi,
     // Subjek santai & formal
     /\b(gue|gua|gw|gueh|ane|aku|kulo|saya|saia|w|lu|lo|loe|kamu|kita|kami)\b/gi,
     // Keterangan waktu / penghubung santai
@@ -292,7 +400,7 @@ function parseSuara(kalimatAsli) {
   if (!ket) {
     ket = jenis === 'masuk' ? 'Uang Masuk' : 'Pengeluaran';
   } else {
-    // Kapitalisasi tiap awal kata (Title Case)
+    // Title Case
     ket = ket.split(' ')
       .map(w => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ');
@@ -385,6 +493,7 @@ function simpanManualBaru() {
   catat(tipeTransaksi, jml, ket);
   inputJml.value = '';
   inputKet.value = '';
+  playSoundSuccess();
   showToast('✅ Berhasil mencatat ' + (tipeTransaksi === 'masuk' ? 'uang masuk ' : 'pengeluaran ') + rp(jml));
 }
 
@@ -407,6 +516,7 @@ function simpanSettingModal() {
   simpan();
   tutupModalSetting();
   render();
+  playSoundSuccess();
   showToast('✅ Pengaturan jatah mingguan disimpan!');
 }
 
@@ -416,6 +526,7 @@ function resetMinggu() {
     data.mulai = Date.now();
     simpan();
     render();
+    playSoundSuccess();
     showToast('✨ Selamat memulai minggu baru!');
   }
 }
@@ -600,10 +711,11 @@ function prosesTeksInput(kalimat) {
 
   if (p) {
     catat(p.jenis, p.jml, p.ket);
+    playSoundSuccess();
     out.innerHTML = `
       <div><span class="hint-label">🎯 Terdengar:</span> "${kalimat}"</div>
       <div style="margin-top: 4px;">
-        <span class="hint-label">✅ Dicatat:</span> 
+        <span class="hint-label">✅ Otomatis Tersimpan:</span> 
         <b style="color: ${p.jenis === 'masuk' ? 'var(--emerald)' : 'var(--rose)'}">
           ${p.jenis === 'masuk' ? '+ ' : '- '}${rp(p.jml)} (${p.ket})
         </b>
@@ -612,6 +724,7 @@ function prosesTeksInput(kalimat) {
     showToast('✅ Berhasil dicatat: ' + rp(p.jml) + ' (' + p.ket + ')');
     return true;
   } else {
+    playSoundCancel();
     out.innerHTML = `
       <div><span class="hint-label">⚠️ Terdengar:</span> "${kalimat}"</div>
       <div style="font-size: 12px; color: var(--rose-dark); margin-top: 4px;">
@@ -627,14 +740,17 @@ function tesUcapan(kalimat) {
   prosesTeksInput(kalimat);
 }
 
-// ---------- Voice Input (Speech Recognition) ----------
+// =================================================================
+// 🎙️ VOICE INPUT (SPEECH RECOGNITION DENGAN EFEK SUARA & AUTO-SAVE)
+// =================================================================
+
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const mic = document.getElementById('mic');
 const micText = document.getElementById('micText');
 const hasilSuara = document.getElementById('hasilSuara');
 
 if (!SR) {
-  if (micText) micText.textContent = 'Browser belum mendukung suara (gunakan Google Chrome)';
+  if (micText) micText.textContent = 'Browser belum mendukung suara (gunakan Safari iOS atau Chrome)';
   if (mic) {
     mic.disabled = true;
     mic.style.opacity = '0.7';
@@ -643,76 +759,166 @@ if (!SR) {
 } else {
   const rec = new SR();
   rec.lang = 'id-ID';
-  rec.interimResults = true; // Transkripsi langsung saat bicara
-  rec.maxAlternatives = 5;   // Cek beberapa variasi transkripsi untuk akurasi tertinggi
+  rec.interimResults = true; // Transkripsi live
+  rec.maxAlternatives = 5;
 
   let sedangMerekam = false;
+  let timerDiam = null;          // Timer deteksi hening (silence detection)
+  let timerBatasMaksimal = null; // Timer keamanan batas waktu rekaman
+  let teksTerakhirDidengar = ''; // Teks terakhir yang berhasil ditangkap
+  let sudahDisimpan = false;     // Mencegah double-saving
+
+  function resetMicVisual() {
+    sedangMerekam = false;
+    mic.classList.remove('on');
+    micText.textContent = 'Tekan lalu bicara santai';
+  }
+
+  function selesaikanDanSimpan(teks) {
+    if (sudahDisimpan) return;
+    sudahDisimpan = true;
+
+    // Bersihkan semua timer
+    if (timerDiam) { clearTimeout(timerDiam); timerDiam = null; }
+    if (timerBatasMaksimal) { clearTimeout(timerBatasMaksimal); timerBatasMaksimal = null; }
+
+    // Hentikan rekaman di browser/iOS
+    try { rec.stop(); } catch (err) {}
+    resetMicVisual();
+
+    // Haptic feedback jika didukung perangkat (vibrasi sukses halus)
+    if (navigator.vibrate) {
+      try { navigator.vibrate(40); } catch (e) {}
+    }
+
+    if (teks && teks.trim()) {
+      prosesTeksInput(teks.trim());
+    } else {
+      playSoundCancel();
+    }
+  }
 
   mic.onclick = () => {
+    // Pastikan AudioContext di-resume/diaktifkan melalui gesture klik pengguna
+    getAudioContext();
+
+    // Jika sedang merekam dan tombol ditekan lagi, langsung simpan apa yang terdengar
     if (sedangMerekam) {
-      rec.stop();
+      if (teksTerakhirDidengar) {
+        selesaikanDanSimpan(teksTerakhirDidengar);
+      } else {
+        if (timerDiam) clearTimeout(timerDiam);
+        if (timerBatasMaksimal) clearTimeout(timerBatasMaksimal);
+        try { rec.stop(); } catch (e) {}
+        resetMicVisual();
+        playSoundCancel();
+      }
       return;
     }
 
+    // Mulai rekaman baru
     try {
       sedangMerekam = true;
+      sudahDisimpan = false;
+      teksTerakhirDidengar = '';
+
+      // Mainkan suara mulai bicara (Start Chime)
+      playSoundStart();
+
       mic.classList.add('on');
-      micText.textContent = 'Mendengarkan... Bicara saja santai';
-      hasilSuara.innerHTML = '<span class="interim-text">🎙️ Sedang mendengarkan suaramu...</span>';
+      micText.textContent = 'Mendengarkan... (Katakan "Simpan" / Berhenti bicara)';
+      hasilSuara.innerHTML = '<span class="interim-text">🎙️ Sedang mendengarkan... Bicara saja santai</span>';
+
       rec.start();
+
+      // Batas waktu keamanan maksimal 15 detik (agar tidak merekam selamanya jika background noise)
+      timerBatasMaksimal = setTimeout(() => {
+        if (sedangMerekam && !sudahDisimpan) {
+          selesaikanDanSimpan(teksTerakhirDidengar);
+        }
+      }, 15000);
+
     } catch (e) {
-      rec.stop();
+      try { rec.stop(); } catch (err) {}
+      resetMicVisual();
     }
   };
 
   rec.onresult = e => {
-    let transkripsiFinal = '';
-    let transkripsiInterim = '';
+    let teksSemua = '';
 
-    // Cek semua alternatif transkripsi untuk menemukan hasil terbaik
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      const res = e.results[i];
-      if (res.isFinal) {
-        // Coba periksa seluruh alternatif jika alternatif pertama tidak memiliki angka
-        let kandidat = res[0].transcript;
-        for (let a = 0; a < res.length; a++) {
-          if (extractNominalDanMatch(res[a].transcript)) {
-            kandidat = res[a].transcript;
-            break;
-          }
+    // Ambil seluruh transcript (baik interim maupun final)
+    for (let i = 0; i < e.results.length; i++) {
+      let subText = e.results[i][0].transcript;
+      for (let a = 0; a < e.results[i].length; a++) {
+        if (extractNominalDanMatch(e.results[i][a].transcript)) {
+          subText = e.results[i][a].transcript;
+          break;
         }
-        transkripsiFinal = kandidat;
-      } else {
-        transkripsiInterim += res[0].transcript;
       }
+      teksSemua += subText + ' ';
     }
 
-    // Tampilkan teks sementara jika pengguna masih berbicara
-    if (transkripsiInterim && !transkripsiFinal) {
-      hasilSuara.innerHTML = `
-        <span class="hint-label">🎙️ Mendengarkan:</span> 
-        <span class="interim-text">"${transkripsiInterim}"...</span>
-      `;
+    teksSemua = teksSemua.trim();
+    if (!teksSemua) return;
+
+    teksTerakhirDidengar = teksSemua;
+
+    // Tampilkan teks yang sedang didengar secara live di layar
+    hasilSuara.innerHTML = `
+      <div><span class="hint-label">🎙️ Mendengarkan:</span> <span class="interim-text">"${teksSemua}"...</span></div>
+      <div style="font-size: 11px; color: var(--text-dim); margin-top: 3px;">
+        ⚡ Bilang "<b>simpan</b>" atau <b>diam sejenak</b> untuk langsung menyimpan otomatis.
+      </div>
+    `;
+
+    // -------------------------------------------------------------
+    // FITUR 1: DETEKSI KATA KUNCI "SIMPAN" / "SELESAI" / "CATAT"
+    // Begitu pengguna menyebut "simpan", langsung stop, bunyi lonceng & simpan!
+    // -------------------------------------------------------------
+    const polaKataSimpan = /\b(simpan|oke simpan|selesai|catat)\b/i;
+    if (polaKataSimpan.test(teksSemua)) {
+      selesaikanDanSimpan(teksSemua);
+      return;
     }
 
-    // Proses setelah selesai bicara
-    if (transkripsiFinal) {
-      prosesTeksInput(transkripsiFinal);
-    }
+    // -------------------------------------------------------------
+    // FITUR 2: DETEKSI DIAM / HENING (AUTO-SAVE SAAT PENGGUNA DIAM)
+    // -------------------------------------------------------------
+    if (timerDiam) clearTimeout(timerDiam);
+
+    const adaNominal = extractNominalDanMatch(teksSemua);
+    const jedaDiam = adaNominal ? 1200 : 2200;
+
+    timerDiam = setTimeout(() => {
+      if (sedangMerekam && !sudahDisimpan && teksSemua) {
+        selesaikanDanSimpan(teksSemua);
+      }
+    }, jedaDiam);
   };
 
   rec.onend = () => {
-    sedangMerekam = false;
-    mic.classList.remove('on');
-    micText.textContent = 'Tekan lalu bicara santai';
+    if (sedangMerekam && !sudahDisimpan && teksTerakhirDidengar) {
+      selesaikanDanSimpan(teksTerakhirDidengar);
+    } else {
+      resetMicVisual();
+    }
   };
 
   rec.onerror = event => {
-    sedangMerekam = false;
-    mic.classList.remove('on');
-    micText.textContent = 'Tekan lalu bicara santai';
-    if (event.error !== 'no-speech') {
-      hasilSuara.innerHTML = '<span class="hint-label">⚠️ Kendala mikrofon:</span> Pastikan izin mikrofon telah diizinkan pada browser.';
+    if (event.error === 'no-speech') {
+      if (!teksTerakhirDidengar) {
+        resetMicVisual();
+        playSoundCancel();
+        hasilSuara.innerHTML = '<span class="hint-label">💡 Tidak terdengar suara:</span> Silakan tekan tombol mic dan coba bicara lagi.';
+      }
+      return;
+    }
+
+    resetMicVisual();
+    if (event.error !== 'aborted') {
+      playSoundCancel();
+      hasilSuara.innerHTML = '<span class="hint-label">⚠️ Kendala mikrofon:</span> Pastikan izin mikrofon telah diizinkan di browser iOS / Safari.';
     }
   };
 }

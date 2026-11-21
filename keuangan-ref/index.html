@@ -145,11 +145,11 @@
       <div class="status-text" id="statusText">Pas, pengeluaranmu sesuai jatah.</div>
     </div>
 
-    <!-- Voice Input Card (Pintar & Santai) -->
+    <!-- Voice Input Card (Pintar, Auto-Stop & Kata Kunci Simpan) -->
     <div class="card voice-card">
       <div class="card-head">
-        <span class="card-title">🎙️ Catat Suara (Bahasa Santai & Gaul)</span>
-        <span class="badge-ai">Pintar</span>
+        <span class="card-title">🎙️ Catat Suara Cerdas (iOS & Android)</span>
+        <span class="badge-ai">Auto-Save</span>
       </div>
 
       <button id="mic" class="mic-button">
@@ -169,18 +169,18 @@
 
       <!-- Real-time / Hasil Suara -->
       <div class="voice-feedback" id="hasilSuara">
-        <span class="hint-label">Bebas ngomong apa aja:</span> "Makan soto 25 rebu", "Ngopi ceban", "Bensin 20k", "Dapet transferan tiga ratus ribu"
+        <span class="hint-label">⚡ Otomatis Tersimpan:</span> Ucapkan kata kunci <b>"simpan"</b> di akhir (contoh: <i>"Makan bakso 25 rebu simpan"</i>) atau <b>diam sejenak</b> setelah bicara.
       </div>
 
       <!-- Quick Voice Tester Chips -->
       <div class="sample-voice-section">
-        <span class="sample-voice-title">Coba klik contoh ucapan santai:</span>
+        <span class="sample-voice-title">Coba klik contoh ucapan (otomatis simpan):</span>
         <div class="sample-voice-chips">
-          <button type="button" class="sample-chip" onclick="tesUcapan('Gue tadi makan soto dua puluh lima ribu')">🍜 Soto 25 rebu</button>
-          <button type="button" class="sample-chip" onclick="tesUcapan('Ngopi kenangan ceban')">☕ Ngopi ceban</button>
+          <button type="button" class="sample-chip" onclick="tesUcapan('Makan soto 25 rebu simpan')">⚡ Soto 25rb simpan</button>
+          <button type="button" class="sample-chip" onclick="tesUcapan('Ngopi ceban simpan')">☕ Ngopi ceban simpan</button>
           <button type="button" class="sample-chip" onclick="tesUcapan('Beli bensin gocap')">🛵 Bensin gocap</button>
-          <button type="button" class="sample-chip" onclick="tesUcapan('Parkir kampus goceng')">🅿️ Parkir goceng</button>
-          <button type="button" class="sample-chip" onclick="tesUcapan('Dapet transferan ortu tiga ratus ribu')">💵 Transfer 300rb</button>
+          <button type="button" class="sample-chip" onclick="tesUcapan('Parkir kampus goceng simpan')">🅿️ Parkir goceng simpan</button>
+          <button type="button" class="sample-chip" onclick="tesUcapan('Dapet transferan ortu tiga ratus ribu simpan')">💵 Transfer 300rb simpan</button>
         </div>
       </div>
     </div>
