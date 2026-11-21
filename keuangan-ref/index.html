@@ -2,9 +2,22 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>bibmoney — Kelola Keuangan Mingguan Cerdas</title>
   <meta name="description" content="bibmoney - Aplikasi pencatat dan pengatur keuangan jatah mingguan cerdas dengan input suara bahasa santai & gaul">
+  
+  <!-- PWA & iOS Standalone (Bisa ditampilkan di layar utama iOS tanpa tab browser) -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="bibmoney">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#1e1b4b">
+
+  <!-- Favicon Logo bibmoney -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><defs><linearGradient id='bg' x1='0' y1='0' x2='48' y2='48'><stop offset='0%25' stop-color='%234F46E5'/><stop offset='100%25' stop-color='%237C3AED'/></linearGradient><linearGradient id='coin' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%2334D399'/><stop offset='100%25' stop-color='%23059669'/></linearGradient></defs><rect width='48' height='48' rx='14' fill='url(%23bg)'/><rect x='12' y='10' width='6' height='26' rx='3' fill='%23FFF'/><circle cx='27' cy='26' r='10' fill='url(%23coin)'/><circle cx='27' cy='26' r='4' fill='%23FFF'/><path d='M36 8c0 2 1.8 3.5 3.5 3.5-1.7 0-3.5 1.5-3.5 3.5 0-2-1.8-3.5-3.5-3.5 1.7 0 3.5-1.5 3.5-3.5z' fill='%23FBBF24'/></svg>">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,18 +25,52 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- Header -->
+    <!-- Header dengan Logo Menarik -->
     <header class="app-header">
       <div class="brand">
-        <div class="brand-logo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="6" width="20" height="12" rx="3"></rect>
-            <circle cx="12" cy="12" r="2.5"></circle>
-            <path d="M6 12h.01M18 12h.01"></path>
+        <!-- Logo Menarik bibmoney (Emblem Coin + Huruf 'b' + Sparkle AI) -->
+        <div class="brand-logo" title="bibmoney - Smart Weekly Budget">
+          <svg class="logo-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="bgGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#4F46E5"/>
+                <stop offset="55%" stop-color="#7C3AED"/>
+                <stop offset="100%" stop-color="#2563EB"/>
+              </linearGradient>
+              <linearGradient id="coinGrad" x1="17" y1="16" x2="37" y2="36" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#34D399"/>
+                <stop offset="100%" stop-color="#059669"/>
+              </linearGradient>
+              <linearGradient id="sparkleGrad" x1="31" y1="6" x2="41" y2="16" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FDE047"/>
+                <stop offset="100%" stop-color="#F59E0B"/>
+              </linearGradient>
+              <filter id="softGlow" x="-10%" y="-10%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#0f172a" flood-opacity="0.25"/>
+              </filter>
+            </defs>
+            <!-- Badge Squircle -->
+            <rect width="48" height="48" rx="14" fill="url(#bgGrad)"/>
+            <rect x="1" y="1" width="46" height="46" rx="13" stroke="rgba(255,255,255,0.28)" stroke-width="1.5"/>
+            
+            <!-- Elemen Huruf 'b' + Koin Finansial -->
+            <!-- Batang Kiri 'b' -->
+            <rect x="12" y="11" width="6" height="25" rx="3" fill="#FFFFFF" filter="url(#softGlow)"/>
+            
+            <!-- Lingkaran Koin (Loop 'b') -->
+            <circle cx="27" cy="26" r="10" fill="url(#coinGrad)" filter="url(#softGlow)"/>
+            <circle cx="27" cy="26" r="7" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.4"/>
+            <circle cx="27" cy="26" r="3.5" fill="#FFFFFF"/>
+            
+            <!-- Sambungan dinamis -->
+            <path d="M12 26h9" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+            
+            <!-- Bintang Sparkle AI Finansial -->
+            <path d="M36 7.5C36 9.8 37.8 11.5 40 11.5C37.8 11.5 36 13.2 36 15.5C36 13.2 34.2 11.5 32 11.5C34.2 11.5 36 9.8 36 7.5Z" fill="url(#sparkleGrad)"/>
           </svg>
         </div>
         <div>
-          <h1 class="brand-title">bibmoney</h1>
+          <h1 class="brand-title">bib<span>money</span></h1>
           <p class="brand-subtitle">Smart Weekly Budget</p>
         </div>
       </div>
@@ -45,8 +92,20 @@
 
     <!-- Hero Card: Saldo & Jatah Jajan -->
     <div class="hero-card">
+      <!-- Watermark Logo Kartu Kredit Mewah di Background -->
+      <div class="hero-watermark">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="12" y="11" width="6" height="25" rx="3" fill="#FFFFFF"/>
+          <circle cx="27" cy="26" r="10" stroke="#FFFFFF" stroke-width="3"/>
+          <circle cx="27" cy="26" r="4" fill="#FFFFFF"/>
+        </svg>
+      </div>
+
       <div class="hero-top">
-        <span class="hero-label">Sisa Uang Jajan Minggu Ini</span>
+        <div class="hero-label-wrap">
+          <span class="hero-chip-icon">💳</span>
+          <span class="hero-label">Sisa Uang Jajan Minggu Ini</span>
+        </div>
         <span class="day-badge" id="hariBadge">Hari 1 / 7</span>
       </div>
       <div class="hero-balance" id="sisa">Rp0</div>
@@ -205,9 +264,12 @@
       </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Footer dengan Brand Badge -->
     <footer class="app-footer">
-      <p>bibmoney &bull; Finansial teratur, pikiran tenang</p>
+      <div class="footer-brand">
+        <span class="footer-logo-dot"></span>
+        <b>bibmoney</b> &bull; Finansial teratur, pikiran tenang
+      </div>
     </footer>
   </div>
 

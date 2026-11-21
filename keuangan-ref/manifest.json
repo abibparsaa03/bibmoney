@@ -1,0 +1,18 @@
+{
+  "name": "bibmoney — Smart Weekly Budget",
+  "short_name": "bibmoney",
+  "description": "Aplikasi pencatat dan pengatur keuangan mingguan cerdas dengan input suara bahasa santai & gaul",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#F1F5F9",
+  "theme_color": "#1E1B4B",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
